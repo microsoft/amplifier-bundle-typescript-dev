@@ -1,0 +1,96 @@
+# TypeScript/JavaScript LSP Behavior
+# Configures typescript-language-server for both TypeScript and JavaScript.
+# This config deep merges with lsp-core's tool-lsp config.
+#
+# Absorbed from amplifier-bundle-lsp-typescript into typescript-dev.
+# Users who want ONLY LSP (no quality hooks) can include this behavior directly:
+#   includes:
+#     - bundle: typescript-dev:behaviors/typescript-lsp
+
+bundle:
+  name: behavior-typescript-lsp
+  version: 0.1.0
+
+# Include lsp-core behavior to get the tool-lsp module with source
+includes:
+  - bundle: git+https://github.com/microsoft/amplifier-bundle-lsp@main#subdirectory=behaviors/lsp-core.yaml
+
+# Tool configuration - deep merges with core bundle's tool-lsp
+tools:
+  - module: tool-lsp
+    config:
+      languages:
+        typescript:
+          extensions:
+            - .ts
+            - .tsx
+            - .mts
+            - .cts
+          workspace_markers:
+            - tsconfig.json
+            - package.json
+            - .git
+          server:
+            command:
+              - typescript-language-server
+              - --stdio
+            install_check:
+              - typescript-language-server
+              - --version
+            install_hint: "Install with: npm install -g typescript-language-server typescript"
+          initialization_options:
+            preferences:
+              includeInlayParameterNameHints: all
+              includeInlayFunctionParameterTypeHints: true
+              includeInlayEnumMemberValueHints: true
+              includeInlayFunctionLikeReturnTypeHints: true
+              includeInlayVariableTypeHints: true
+          # Estimated capabilities — validated during live testing (Tasks 4.5/4.6)
+          capabilities:
+            diagnostics: true
+            rename: true
+            codeAction: true
+            inlayHints: true
+            customRequest: false
+            goToImplementation: true
+
+        javascript:
+          extensions:
+            - .js
+            - .jsx
+            - .mjs
+            - .cjs
+          workspace_markers:
+            - jsconfig.json
+            - package.json
+            - .git
+          server:
+            command:
+              - typescript-language-server
+              - --stdio
+            install_check:
+              - typescript-language-server
+              - --version
+            install_hint: "Install with: npm install -g typescript-language-server typescript"
+          initialization_options:
+            preferences:
+              includeInlayParameterNameHints: all
+              includeInlayFunctionParameterTypeHints: true
+          # Same capabilities as TypeScript (same server)
+          capabilities:
+            diagnostics: true
+            rename: true
+            codeAction: true
+            inlayHints: true
+            customRequest: false
+            goToImplementation: true
+
+# TypeScript/JavaScript-specific context for agents
+context:
+  include:
+    - typescript-dev:context/typescript-lsp.md
+
+# TypeScript/JavaScript code intelligence agent
+agents:
+  include:
+    - typescript-dev:code-intel

@@ -1,0 +1,17 @@
+# Example Combined Bundle
+# This demonstrates how to use typescript-dev alongside foundation
+# 
+# To use this bundle:
+#   amplifier bundle use .amplifier/bundle.yaml
+#   amplifier run
+
+bundle:
+  name: foundation-with-typescript-dev
+  version: 0.1.0
+  description: Foundation bundle with TypeScript/JavaScript development tools
+
+# Include both foundation and typescript-dev
+# This gives you all foundation tools + LSP TypeScript/JavaScript support + quality checks
+includes:
+  - bundle: git+https://github.com/microsoft/amplifier-foundation@main
+  - bundle: git+https://github.com/microsoft/amplifier-bundle-typescript-dev@main
