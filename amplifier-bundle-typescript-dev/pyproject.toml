@@ -1,15 +1,50 @@
 [project]
 name = "amplifier-bundle-typescript-dev"
 version = "0.1.0"
-description = "Comprehensive TypeScript/JavaScript development tools for Amplifier"
+description = "Comprehensive TypeScript/JavaScript development tools for Amplifier - code quality, LSP, and expert agents"
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.11"
+authors = [
+    { name = "Microsoft", email = "amplifier@microsoft.com" }
+]
+keywords = [
+    "amplifier",
+    "typescript",
+    "javascript",
+    "linting",
+    "type-checking",
+    "code-quality",
+    "prettier",
+    "eslint",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+
+# No Python tool dependencies - all TS tools are in node_modules
 dependencies = []
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23.0",
+    "pyyaml>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/microsoft/amplifier-bundle-typescript-dev"
+Documentation = "https://github.com/microsoft/amplifier-bundle-typescript-dev#readme"
+Repository = "https://github.com/microsoft/amplifier-bundle-typescript-dev"
+Issues = "https://github.com/microsoft/amplifier-bundle-typescript-dev/issues"
 
 [build-system]
 requires = ["hatchling"]
@@ -17,6 +52,70 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/amplifier_bundle_typescript_dev"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/modules",
+    "/behaviors",
+    "/agents",
+    "/context",
+    "/docs",
+    "/bundle.yaml",
+    "/README.md",
+    "/LICENSE",
+]
+
+# =============================================================================
+# Python tool configurations (for the Python code in this bundle)
+# =============================================================================
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src", "modules"]
+
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "*.egg-info",
+    "build",
+    "dist",
+    "node_modules",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "SIM"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["amplifier_bundle_typescript_dev"]
+force-single-line = true
+combine-as-imports = true
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**/*.py" = ["S101"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+exclude = [
+    "**/.venv",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/build",
+    "**/dist",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

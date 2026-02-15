@@ -1,0 +1,26 @@
+# Amplifier TypeScript/JavaScript Development Bundle
+#
+# The "TypeScript Development Home" - comprehensive TypeScript/JavaScript tooling for Amplifier.
+#
+# Provides:
+# - LSP code intelligence (via typescript-language-server, for both TS and JS)
+# - Tool module: typescript_check() for agents
+# - Hook module: Automatic checking on file write/edit
+# - Agent: code-intel (LSP specialist) + typescript-dev (quality expert)
+# - Shared library: Core checking logic (prettier + eslint + tsc + stubs)
+#
+# Usage:
+#   includes:
+#     - bundle: git+https://github.com/microsoft/amplifier-bundle-typescript-dev@main
+#
+# For LSP only (no quality hooks):
+#   includes:
+#     - bundle: typescript-dev:behaviors/typescript-lsp
+
+bundle:
+  name: typescript-dev
+  version: 0.1.0
+  description: Comprehensive TypeScript/JavaScript development tools with code quality, LSP, and expert agents
+
+includes:
+  - bundle: typescript-dev:behaviors/typescript-dev

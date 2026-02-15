@@ -1,0 +1,30 @@
+# TypeScript/JavaScript Development Behavior (Composite)
+#
+# The full TypeScript/JavaScript development experience.
+# Combines LSP code intelligence with quality tools.
+#
+# This is the default behavior when using the typescript-dev bundle.
+# It includes both sub-behaviors:
+#   - typescript-lsp: LSP navigation, code-intel agent
+#   - typescript-quality: Quality checks, hooks, typescript-dev agent
+#
+# Users who want the full dev experience (default):
+#   includes:
+#     - bundle: git+https://github.com/microsoft/amplifier-bundle-typescript-dev@main
+#
+# Users who want ONLY LSP:
+#   includes:
+#     - bundle: typescript-dev:behaviors/typescript-lsp
+#
+# Users who want ONLY quality tools:
+#   includes:
+#     - bundle: typescript-dev:behaviors/typescript-quality
+
+bundle:
+  name: behavior-typescript-dev
+  version: 0.1.0
+  description: Full TypeScript/JavaScript development - LSP + quality tools + expert agents
+
+includes:
+  - bundle: typescript-dev:behaviors/typescript-lsp
+  - bundle: typescript-dev:behaviors/typescript-quality

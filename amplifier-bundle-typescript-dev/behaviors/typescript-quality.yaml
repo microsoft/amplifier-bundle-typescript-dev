@@ -1,0 +1,58 @@
+# TypeScript/JavaScript Quality Behavior
+#
+# Provides code quality capabilities:
+# - Code quality checking (prettier, eslint, tsc, stub detection)
+# - Automatic checking on file edits (hook)
+# - Expert TypeScript/JavaScript agent
+#
+# Users who want ONLY quality tools (no LSP) can include this behavior directly:
+#   includes:
+#     - bundle: typescript-dev:behaviors/typescript-quality
+
+bundle:
+  name: behavior-typescript-quality
+  version: 0.1.0
+  description: TypeScript/JavaScript quality tools - checks, auto-checking hook, and expert agent
+
+# Tools provided by this behavior
+tools:
+  - module: tool-typescript-check
+    source: git+https://github.com/microsoft/amplifier-bundle-typescript-dev@main#subdirectory=modules/tool-typescript-check
+    config:
+      default_checks:
+        - format
+        - lint
+        - types
+        - stubs
+
+# Hooks provided by this behavior
+hooks:
+  - module: hooks-typescript-check
+    source: git+https://github.com/microsoft/amplifier-bundle-typescript-dev@main#subdirectory=modules/hooks-typescript-check
+    config:
+      enabled: true
+      file_patterns:
+        - "*.ts"
+        - "*.tsx"
+        - "*.mts"
+        - "*.cts"
+        - "*.js"
+        - "*.jsx"
+        - "*.mjs"
+        - "*.cjs"
+      report_level: warning
+      auto_inject: true
+      checks:
+        - lint
+        - types
+        - format
+
+# Agents provided by this behavior
+agents:
+  include:
+    - typescript-dev:typescript-dev
+
+# Context files loaded with this behavior
+context:
+  include:
+    - typescript-dev:context/typescript-dev-instructions.md
