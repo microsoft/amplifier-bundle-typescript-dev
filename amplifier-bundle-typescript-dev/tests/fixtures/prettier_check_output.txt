@@ -1,0 +1,4 @@
+Checking formatting...
+[warn] src/utils.ts
+[warn] src/components/Button.tsx
+[warn] Code style issues found in 2 files. Run Prettier to fix.
