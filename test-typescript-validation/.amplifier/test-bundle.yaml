@@ -1,0 +1,78 @@
+bundle:
+  name: ts-validation
+  version: 0.1.0
+  description: Test bundle for TypeScript dev bundle E2E validation
+
+includes:
+  - bundle: git+https://github.com/microsoft/amplifier-foundation@main
+
+# LSP tool with TypeScript/JavaScript configuration (inlined from typescript-lsp behavior)
+tools:
+  - module: tool-lsp
+    source: lsp:modules/tool-lsp
+    config:
+      timeout_seconds: 30
+      max_retries: 3
+      languages:
+        typescript:
+          extensions:
+            - .ts
+            - .tsx
+            - .mts
+            - .cts
+          workspace_markers:
+            - tsconfig.json
+            - package.json
+            - .git
+          server:
+            command:
+              - typescript-language-server
+              - --stdio
+            install_check:
+              - typescript-language-server
+              - --version
+            install_hint: "Install with: npm install -g typescript-language-server typescript"
+          initialization_options:
+            preferences:
+              includeInlayParameterNameHints: all
+              includeInlayFunctionParameterTypeHints: true
+              includeInlayEnumMemberValueHints: true
+              includeInlayFunctionLikeReturnTypeHints: true
+              includeInlayVariableTypeHints: true
+          capabilities:
+            diagnostics: true
+            rename: true
+            codeAction: true
+            inlayHints: true
+            customRequest: false
+            goToImplementation: true
+
+        javascript:
+          extensions:
+            - .js
+            - .jsx
+            - .mjs
+            - .cjs
+          workspace_markers:
+            - jsconfig.json
+            - package.json
+            - .git
+          server:
+            command:
+              - typescript-language-server
+              - --stdio
+            install_check:
+              - typescript-language-server
+              - --version
+            install_hint: "Install with: npm install -g typescript-language-server typescript"
+          initialization_options:
+            preferences:
+              includeInlayParameterNameHints: all
+              includeInlayFunctionParameterTypeHints: true
+          capabilities:
+            diagnostics: true
+            rename: true
+            codeAction: true
+            inlayHints: true
+            customRequest: false
+            goToImplementation: true
