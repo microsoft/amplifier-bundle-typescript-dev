@@ -14,7 +14,11 @@ import subprocess
 from pathlib import Path
 
 from .config import load_config
-from .models import ALL_EXTENSIONS, CheckConfig, CheckResult, Issue, Severity
+from .models import ALL_EXTENSIONS
+from .models import CheckConfig
+from .models import CheckResult
+from .models import Issue
+from .models import Severity
 
 # Timeout for external tool invocations (seconds)
 _TOOL_TIMEOUT = 120
@@ -157,7 +161,7 @@ class TypeScriptChecker:
         """Run prettier format check.
 
         Uses --check mode (reports files needing formatting) or --write (auto-fix).
-        Parses [warn] lines from stdout to identify files.
+        Parses [warn] lines from stderr to identify files (Prettier v3+).
         """
         cmd = ["npx", "prettier"]
         if fix:
@@ -167,9 +171,7 @@ class TypeScriptChecker:
         cmd.extend(paths)
 
         try:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=_TOOL_TIMEOUT
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=_TOOL_TIMEOUT)
         except FileNotFoundError:
             return _npx_not_found_result("prettier")
         except subprocess.TimeoutExpired:
@@ -196,7 +198,7 @@ class TypeScriptChecker:
             )
 
         if result.returncode != 0 and not fix:
-            return self._parse_prettier_output(result.stdout)
+            return self._parse_prettier_output(result.stderr)
 
         return CheckResult(issues=[], checks_run=["prettier"])
 
@@ -245,9 +247,7 @@ class TypeScriptChecker:
         cmd.extend(paths)
 
         try:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=_TOOL_TIMEOUT
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=_TOOL_TIMEOUT)
         except FileNotFoundError:
             return _npx_not_found_result("eslint")
         except subprocess.TimeoutExpired:
@@ -337,9 +337,7 @@ class TypeScriptChecker:
         cmd = ["npx", "tsc", "--noEmit", "--pretty", "false"]
 
         try:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=_TOOL_TIMEOUT
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=_TOOL_TIMEOUT)
         except FileNotFoundError:
             return _npx_not_found_result("tsc")
         except subprocess.TimeoutExpired:
@@ -375,9 +373,7 @@ class TypeScriptChecker:
         Format: file(line,col): error TS1234: message
         """
         issues = []
-        tsc_pattern = re.compile(
-            r"^(.+)\((\d+),(\d+)\):\s+(error|warning)\s+(TS\d+):\s+(.+)$"
-        )
+        tsc_pattern = re.compile(r"^(.+)\((\d+),(\d+)\):\s+(error|warning)\s+(TS\d+):\s+(.+)$")
 
         for line in output.split("\n"):
             match = tsc_pattern.match(line.strip())
@@ -448,17 +444,12 @@ class TypeScriptChecker:
 
         return issues
 
-    def _is_legitimate_pattern(
-        self, file_path: Path, line_num: int, line: str, lines: list[str]
-    ) -> bool:
+    def _is_legitimate_pattern(self, file_path: Path, line_num: int, line: str, lines: list[str]) -> bool:
         """Check if a stub pattern is actually legitimate (TypeScript/JS-specific)."""
         file_str = str(file_path).lower()
 
         # Test files are allowed to have stubs and TODOs
-        if any(
-            marker in file_str
-            for marker in [".test.", ".spec.", "__tests__", "__mocks__"]
-        ):
+        if any(marker in file_str for marker in [".test.", ".spec.", "__tests__", "__mocks__"]):
             return True
 
         # @ts-expect-error WITH an explanation is legitimate
@@ -467,19 +458,12 @@ class TypeScriptChecker:
             return True
 
         # @ts-ignore in type declaration files (.d.ts) is sometimes necessary
-        if (
-            "@ts-ignore" in line
-            and file_path.suffix == ".ts"
-            and file_path.stem.endswith(".d")
-        ):
+        if "@ts-ignore" in line and file_path.suffix == ".ts" and file_path.stem.endswith(".d"):
             return True
 
         # Abstract method stubs in TypeScript are legitimate
         stripped = line.strip()
-        if (
-            stripped == "throw new Error('not implemented');"
-            or stripped == 'throw new Error("not implemented");'
-        ):
+        if stripped == "throw new Error('not implemented');" or stripped == 'throw new Error("not implemented");':
             for i in range(max(0, line_num - 3), line_num):
                 if "abstract" in lines[i]:
                     return True
@@ -488,9 +472,7 @@ class TypeScriptChecker:
 
 
 # Convenience functions for direct use
-def check_files(
-    paths: list[str | Path], config: CheckConfig | None = None, fix: bool = False
-) -> CheckResult:
+def check_files(paths: list[str | Path], config: CheckConfig | None = None, fix: bool = False) -> CheckResult:
     """Check TypeScript/JavaScript files for issues.
 
     Args:
@@ -505,9 +487,7 @@ def check_files(
     return checker.check_files(paths, fix=fix)
 
 
-def check_content(
-    content: str, filename: str = "stdin.ts", config: CheckConfig | None = None
-) -> CheckResult:
+def check_content(content: str, filename: str = "stdin.ts", config: CheckConfig | None = None) -> CheckResult:
     """Check TypeScript/JavaScript content string.
 
     Args:

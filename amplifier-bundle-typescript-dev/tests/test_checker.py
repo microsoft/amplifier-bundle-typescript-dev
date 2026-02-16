@@ -1,9 +1,12 @@
 """Tests for TypeScriptChecker parsing logic."""
 
 from pathlib import Path
+from unittest.mock import patch
 
 from amplifier_bundle_typescript_dev.checker import TypeScriptChecker
-from amplifier_bundle_typescript_dev.models import CheckConfig, CheckResult, Severity
+from amplifier_bundle_typescript_dev.models import CheckConfig
+from amplifier_bundle_typescript_dev.models import CheckResult
+from amplifier_bundle_typescript_dev.models import Severity
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -91,9 +94,7 @@ class TestParseEslintOutput:
         checker = TypeScriptChecker(CheckConfig())
         result = checker._parse_eslint_output(output)
 
-        any_error = [
-            i for i in result.issues if i.code == "@typescript-eslint/no-explicit-any"
-        ][0]
+        any_error = [i for i in result.issues if i.code == "@typescript-eslint/no-explicit-any"][0]
         assert any_error.severity == Severity.ERROR
         assert any_error.line == 10
 
@@ -113,9 +114,7 @@ class TestParseEslintOutput:
         checker = TypeScriptChecker(CheckConfig())
         result = checker._parse_eslint_output(output)
 
-        any_error = [
-            i for i in result.issues if i.code == "@typescript-eslint/no-explicit-any"
-        ][0]
+        any_error = [i for i in result.issues if i.code == "@typescript-eslint/no-explicit-any"][0]
         assert any_error.suggestion is not None
         assert "unknown" in any_error.suggestion.lower()
 
@@ -145,9 +144,7 @@ class TestParseEslintOutput:
         checker = TypeScriptChecker(CheckConfig())
         result = checker._parse_eslint_output(output)
 
-        any_error = [
-            i for i in result.issues if i.code == "@typescript-eslint/no-explicit-any"
-        ][0]
+        any_error = [i for i in result.issues if i.code == "@typescript-eslint/no-explicit-any"][0]
         assert any_error.end_line == 10
         assert any_error.end_column == 23
 
@@ -261,9 +258,7 @@ class TestStubDetection:
         checker = TypeScriptChecker(CheckConfig())
         issues = checker._check_file_for_stubs(fixture)
 
-        bare_expect = [
-            i for i in issues if "@ts-expect-error without explanation" in i.message
-        ]
+        bare_expect = [i for i in issues if "@ts-expect-error without explanation" in i.message]
         assert len(bare_expect) == 1
 
     def test_ts_expect_error_with_explanation_not_flagged(self):
@@ -463,3 +458,38 @@ class TestCheckResultModel:
     def test_to_hook_output_empty_when_clean(self):
         result = CheckResult()
         assert result.to_hook_output() == {}
+
+
+class TestRunPrettierStderr:
+    """Test that _run_prettier reads [warn] output from stderr (Prettier v3)."""
+
+    def test_prettier_v3_warns_on_stderr(self):
+        """Prettier v3 writes [warn] lines to stderr, not stdout.
+
+        The checker must parse stderr to find formatting issues.
+        """
+        prettier_stderr = (
+            "Checking formatting...\n"
+            "[warn] src/utils.ts\n"
+            "[warn] src/components/Button.tsx\n"
+            "[warn] Code style issues found in 2 files. Run Prettier to fix.\n"
+        )
+        mock_result = type(
+            "CompletedProcess",
+            (),
+            {
+                "stdout": "",
+                "stderr": prettier_stderr,
+                "returncode": 1,
+            },
+        )()
+
+        checker = TypeScriptChecker(CheckConfig())
+        with patch("amplifier_bundle_typescript_dev.checker.subprocess.run", return_value=mock_result):
+            result = checker._run_prettier(["src/"])
+
+        assert len(result.issues) == 2, f"Expected 2 formatting issues from stderr, got {len(result.issues)}"
+        assert result.issues[0].file == "src/utils.ts"
+        assert result.issues[1].file == "src/components/Button.tsx"
+        assert result.issues[0].code == "FORMAT"
+        assert result.issues[0].severity == Severity.WARNING
