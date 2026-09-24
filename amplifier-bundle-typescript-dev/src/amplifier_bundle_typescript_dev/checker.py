@@ -168,6 +168,7 @@ class TypeScriptChecker:
             cmd.append("--write")
         else:
             cmd.append("--check")
+        cmd.append("--")
         cmd.extend(paths)
 
         try:
@@ -244,6 +245,7 @@ class TypeScriptChecker:
         cmd = ["npx", "eslint", "--format=json"]
         if fix:
             cmd.append("--fix")
+        cmd.append("--")
         cmd.extend(paths)
 
         try:

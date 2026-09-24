@@ -1,6 +1,7 @@
 """Tests for TypeScriptChecker parsing logic."""
 
 from pathlib import Path
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from amplifier_bundle_typescript_dev.checker import TypeScriptChecker
@@ -493,3 +494,45 @@ class TestRunPrettierStderr:
         assert result.issues[1].file == "src/components/Button.tsx"
         assert result.issues[0].code == "FORMAT"
         assert result.issues[0].severity == Severity.WARNING
+
+
+class TestCommandArgumentSeparation:
+    """Test that user-provided paths cannot be interpreted as CLI options."""
+
+    def test_prettier_separates_paths_from_options(self):
+        mock_result = MagicMock(stdout="", stderr="", returncode=0)
+        checker = TypeScriptChecker(CheckConfig())
+
+        with patch(
+            "amplifier_bundle_typescript_dev.checker.subprocess.run",
+            return_value=mock_result,
+        ) as run:
+            checker._run_prettier(["--plugin=evil.js"], fix=True)
+
+        assert run.call_args.args[0] == [
+            "npx",
+            "prettier",
+            "--write",
+            "--",
+            "--plugin=evil.js",
+        ]
+
+    def test_eslint_separates_paths_from_options(self):
+        mock_result = MagicMock(stdout="[]", stderr="", returncode=0)
+        checker = TypeScriptChecker(CheckConfig())
+
+        with patch(
+            "amplifier_bundle_typescript_dev.checker.subprocess.run",
+            return_value=mock_result,
+        ) as run:
+            checker._run_eslint(["--config", "evil.js"], fix=True)
+
+        assert run.call_args.args[0] == [
+            "npx",
+            "eslint",
+            "--format=json",
+            "--fix",
+            "--",
+            "--config",
+            "evil.js",
+        ]
