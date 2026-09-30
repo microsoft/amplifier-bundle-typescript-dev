@@ -5,7 +5,9 @@ and the mount function signature.
 """
 
 import asyncio
+from pathlib import Path
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 
@@ -278,6 +280,36 @@ class TestHookEventFiltering:
         )
         assert result.action == "continue"
 
+    @pytest.mark.asyncio
+    async def test_option_like_filename_is_passed_as_an_operand(self, tmp_path, monkeypatch):
+        from amplifier_module_hooks_typescript_check import TypeScriptCheckHooks
+
+        monkeypatch.chdir(tmp_path)
+        file_path = "--plugin=evil.js"
+        Path(file_path).write_text("const value = 1;\n", encoding="utf-8")
+        hooks = TypeScriptCheckHooks({"checks": ["format"]}, working_dir=tmp_path)
+        mock_result = MagicMock(stdout="", stderr="", returncode=0)
+
+        with patch(
+            "amplifier_bundle_typescript_dev.checker.subprocess.run",
+            return_value=mock_result,
+        ) as run:
+            await hooks.handle_tool_post(
+                "tool:post",
+                {
+                    "tool_name": "write_file",
+                    "tool_input": {"file_path": file_path},
+                },
+            )
+
+        assert run.call_args.args[0] == [
+            "npx",
+            "prettier",
+            "--check",
+            "--",
+            file_path,
+        ]
+
 
 class TestMountFunction:
     """Test the module mount function."""
@@ -328,9 +360,7 @@ class TestMountFunction:
         coordinator.hooks = MagicMock()
         coordinator.hooks.register = MagicMock()
 
-        result = await mount(
-            coordinator, config={"enabled": True, "verbosity": "detailed"}
-        )
+        result = await mount(coordinator, config={"enabled": True, "verbosity": "detailed"})
 
         assert result["config"]["enabled"] is True
         assert result["config"]["verbosity"] == "detailed"
